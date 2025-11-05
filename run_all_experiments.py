@@ -37,8 +37,8 @@ def run_all_experiments(quick_test=False):
     else:
         print("\n*** FULL EXPERIMENT MODE ***")
         print("This will take several hours to complete\n")
-        architectures = ['resnet18', 'vgg11', 'mlp']
-        seeds = [42, 123, 456]
+        architectures = ['resnet18']
+        seeds = [42]
         epochs = ExperimentConfig.EPOCHS
     
     # Import experiments
