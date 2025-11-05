@@ -33,13 +33,13 @@ def run_all_experiments(quick_test=False):
         print("Using reduced parameters for faster execution\n")
         architectures = ['resnet18']
         seeds = [42]
-        epochs = 50
+        epochs = 25
     else:
         print("\n*** FULL EXPERIMENT MODE ***")
         print("This will take several hours to complete\n")
         architectures = ['resnet18', 'vgg11', 'mlp']
         seeds = [42, 123, 456]
-        epochs = 200
+        epochs = ExperimentConfig.EPOCHS
     
     # Import experiments
     from src.experiments import baseline_replication
@@ -100,32 +100,32 @@ def run_all_experiments(quick_test=False):
                          two_stage_results['sample_efficiency']['accuracies']):
             print(f"  {n:6d} samples: {acc:.2f}% agreement")
     
-    # Experiment 4: Frequency Analysis
-    print("\n" + "="*80)
-    print("EXPERIMENT 4: FREQUENCY ANALYSIS")
-    print("="*80)
-    freq_results = frequency_analysis.run_frequency_analysis(
-        architectures=architectures,
-        seeds=seeds,
-        resolution=64 if not quick_test else 32,
-        n_directions=100 if not quick_test else 50,
-        verbose=True
-    )
-    frequency_analysis.compare_frequency_content(freq_results)
+    # # Experiment 4: Frequency Analysis
+    # print("\n" + "="*80)
+    # print("EXPERIMENT 4: FREQUENCY ANALYSIS")
+    # print("="*80)
+    # freq_results = frequency_analysis.run_frequency_analysis(
+    #     architectures=architectures,
+    #     seeds=seeds,
+    #     resolution=64 if not quick_test else 32,
+    #     n_directions=100 if not quick_test else 50,
+    #     verbose=True
+    # )
+    # frequency_analysis.compare_frequency_content(freq_results)
     
-    # Experiment 5: Progressive Corruption
-    print("\n" + "="*80)
-    print("EXPERIMENT 5: PROGRESSIVE CORRUPTION")
-    print("="*80)
-    corruption_results = complexity_measures.run_progressive_corruption_experiment(
-        corruption_rates=[0.0, 0.25, 0.5, 0.75, 1.0],
-        architectures=architectures,
-        seeds=seeds,
-        epochs=epochs,
-        analyze_smoothness=True,
-        verbose=True
-    )
-    complexity_measures.summarize_corruption_results(corruption_results)
+    # # Experiment 5: Progressive Corruption
+    # print("\n" + "="*80)
+    # print("EXPERIMENT 5: PROGRESSIVE CORRUPTION")
+    # print("="*80)
+    # corruption_results = complexity_measures.run_progressive_corruption_experiment(
+    #     corruption_rates=[0.0, 0.25, 0.5, 0.75, 1.0],
+    #     architectures=architectures,
+    #     seeds=seeds,
+    #     epochs=epochs,
+    #     analyze_smoothness=True,
+    #     verbose=True
+    # )
+    # complexity_measures.summarize_corruption_results(corruption_results)
     
     # Summary
     print("\n" + "="*80)

@@ -36,7 +36,7 @@ class ExperimentConfig:
     # Analysis parameters
     N_SMOOTHNESS_SAMPLES = 1000
     FOURIER_RESOLUTION = 64
-    LIPSCHITZ_SAMPLES = 100
+    LIPSCHITZ_SAMPLES = 500
     GRADIENT_NORM_SAMPLES = 1000
     
     # Two-stage learning parameters

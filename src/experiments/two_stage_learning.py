@@ -160,9 +160,9 @@ def train_stage2_model(
     
     train_loader = DataLoader(
         train_dataset,
-        batch_size=128,
+        batch_size=ExperimentConfig.BATCH_SIZE,
         shuffle=True,
-        num_workers=4,
+        num_workers=ExperimentConfig.NUM_WORKERS,
         pin_memory=True
     )
     
@@ -171,9 +171,9 @@ def train_stage2_model(
     if test_dataset is not None:
         test_loader = DataLoader(
             test_dataset,
-            batch_size=128,
+            batch_size=ExperimentConfig.BATCH_SIZE,
             shuffle=False,
-            num_workers=4,
+            num_workers=ExperimentConfig.NUM_WORKERS,
             pin_memory=True
         )
     
@@ -513,7 +513,7 @@ if __name__ == '__main__':
         stage1_samples=50000,
         stage2_samples=50000,
         noise_type='uniform',
-        epochs=200,
+        epochs=ExperimentConfig.EPOCHS,
         seed=42,
         test_sample_efficiency=True,
         verbose=True
