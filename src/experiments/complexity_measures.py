@@ -62,7 +62,8 @@ def train_with_corruption(
         learning_rate=ExperimentConfig.LEARNING_RATE,
         momentum=ExperimentConfig.MOMENTUM,
         weight_decay=ExperimentConfig.WEIGHT_DECAY,
-        scheduler_type=ExperimentConfig.SCHEDULER
+        scheduler_type=ExperimentConfig.SCHEDULER,
+        use_amp=ExperimentConfig.USE_AMP
     )
     
     if verbose:

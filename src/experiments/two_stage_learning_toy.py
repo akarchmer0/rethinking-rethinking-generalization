@@ -82,11 +82,15 @@ class ToyRandomDataset(Dataset):
 
 
 def train_model_toy(model: nn.Module, train_loader: DataLoader, 
-                    epochs: int, device: str, verbose: bool = True) -> Dict:
+                    epochs: int, device: str, verbose: bool = True, use_amp: bool = True) -> Dict:
     """Train a model and return training history."""
     model = model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     criterion = nn.CrossEntropyLoss()
+    
+    # Initialize AMP (only on CUDA)
+    use_amp = use_amp and device == 'cuda'
+    scaler = torch.cuda.amp.GradScaler() if use_amp else None
     
     history = {'train_loss': [], 'train_acc': []}
     
@@ -100,10 +104,21 @@ def train_model_toy(model: nn.Module, train_loader: DataLoader,
             inputs, targets = inputs.to(device), targets.to(device)
             
             optimizer.zero_grad()
-            outputs = model(inputs)
-            loss = criterion(outputs, targets)
-            loss.backward()
-            optimizer.step()
+            
+            # Use automatic mixed precision if enabled
+            if use_amp:
+                with torch.cuda.amp.autocast():
+                    outputs = model(inputs)
+                    loss = criterion(outputs, targets)
+                
+                scaler.scale(loss).backward()
+                scaler.step(optimizer)
+                scaler.update()
+            else:
+                outputs = model(inputs)
+                loss = criterion(outputs, targets)
+                loss.backward()
+                optimizer.step()
             
             total_loss += loss.item() * inputs.size(0)
             _, predicted = outputs.max(1)
@@ -185,7 +200,8 @@ def run_toy_two_stage_experiment(
     batch_size: int = 128,
     track_agreement: bool = True,
     seed: int = 42,
-    verbose: bool = True
+    verbose: bool = True,
+    use_amp: bool = True
 ) -> Dict:
     """
     Run toy two-stage learning experiment.
@@ -203,6 +219,7 @@ def run_toy_two_stage_experiment(
         track_agreement: Track agreement during training
         seed: Random seed
         verbose: Print progress
+        use_amp: Use automatic mixed precision (faster on GPU)
     
     Returns:
         Dictionary with all results
@@ -252,7 +269,7 @@ def run_toy_two_stage_experiment(
         print(f"\nTraining Network_1...")
     
     history1 = train_model_toy(
-        model1, stage1_loader, epochs_stage1, device, verbose=verbose
+        model1, stage1_loader, epochs_stage1, device, verbose=verbose, use_amp=use_amp
     )
     
     if verbose:
@@ -346,7 +363,7 @@ def run_toy_two_stage_experiment(
         model2 = model2_temp
     else:
         history2 = train_model_toy(
-            model2, stage2_loader, epochs_stage2, device, verbose=verbose
+            model2, stage2_loader, epochs_stage2, device, verbose=verbose, use_amp=use_amp
         )
     
     # ========================================
@@ -390,7 +407,7 @@ def run_toy_two_stage_experiment(
         # Train model
         model_small = ToyMLP(input_dim, hidden_sizes, n_classes)
         _ = train_model_toy(
-            model_small, small_loader, epochs_stage2, device, verbose=False
+            model_small, small_loader, epochs_stage2, device, verbose=False, use_amp=use_amp
         )
         
         # Evaluate agreement

@@ -15,7 +15,7 @@ class Trainer:
     def __init__(self, model: nn.Module, device: torch.device,
                  learning_rate: float = 0.01, momentum: float = 0.9,
                  weight_decay: float = 5e-4, optimizer_type: str = 'SGD',
-                 scheduler_type: Optional[str] = 'cosine'):
+                 scheduler_type: Optional[str] = 'cosine', use_amp: bool = True):
         """
         Args:
             model: Neural network model
@@ -25,6 +25,7 @@ class Trainer:
             weight_decay: Weight decay (L2 regularization)
             optimizer_type: Type of optimizer ('SGD' or 'Adam')
             scheduler_type: Type of learning rate scheduler ('cosine', 'step', or None)
+            use_amp: Use automatic mixed precision (faster on modern GPUs)
         """
         self.model = model.to(device)
         self.device = device
@@ -48,6 +49,10 @@ class Trainer:
         elif scheduler_type == 'step':
             self.scheduler = optim.lr_scheduler.StepLR(
                 self.optimizer, step_size=50, gamma=0.1)
+        
+        # Initialize AMP (only on CUDA)
+        self.use_amp = use_amp and device.type == 'cuda'
+        self.scaler = torch.cuda.amp.GradScaler() if self.use_amp else None
         
         self.history = {
             'train_loss': [],
@@ -76,10 +81,21 @@ class Trainer:
             inputs, targets = inputs.to(self.device), targets.to(self.device)
             
             self.optimizer.zero_grad()
-            outputs = self.model(inputs)
-            loss = self.criterion(outputs, targets)
-            loss.backward()
-            self.optimizer.step()
+            
+            # Use automatic mixed precision if enabled
+            if self.use_amp:
+                with torch.cuda.amp.autocast():
+                    outputs = self.model(inputs)
+                    loss = self.criterion(outputs, targets)
+                
+                self.scaler.scale(loss).backward()
+                self.scaler.step(self.optimizer)
+                self.scaler.update()
+            else:
+                outputs = self.model(inputs)
+                loss = self.criterion(outputs, targets)
+                loss.backward()
+                self.optimizer.step()
             
             total_loss += loss.item() * inputs.size(0)
             _, predicted = outputs.max(1)
@@ -179,12 +195,15 @@ class Trainer:
     
     def save_checkpoint(self, path: str):
         """Save model checkpoint."""
-        torch.save({
+        checkpoint = {
             'model_state_dict': self.model.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
             'scheduler_state_dict': self.scheduler.state_dict() if self.scheduler else None,
             'history': self.history
-        }, path)
+        }
+        if self.use_amp and self.scaler:
+            checkpoint['scaler_state_dict'] = self.scaler.state_dict()
+        torch.save(checkpoint, path)
     
     def load_checkpoint(self, path: str):
         """Load model checkpoint."""
@@ -193,6 +212,8 @@ class Trainer:
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         if self.scheduler and checkpoint['scheduler_state_dict']:
             self.scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+        if self.use_amp and self.scaler and 'scaler_state_dict' in checkpoint:
+            self.scaler.load_state_dict(checkpoint['scaler_state_dict'])
         self.history = checkpoint.get('history', self.history)
 
 

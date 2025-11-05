@@ -52,8 +52,9 @@ class ExperimentConfig:
     
     # Compute parameters
     DEVICE = 'cuda'  # Will fallback to 'cpu' if CUDA unavailable
-    NUM_WORKERS = 4
+    NUM_WORKERS = 2
     PIN_MEMORY = True
+    USE_AMP = True  # Automatic Mixed Precision (faster training on modern GPUs)
     
     # Logging
     LOG_INTERVAL = 10  # Log every N batches

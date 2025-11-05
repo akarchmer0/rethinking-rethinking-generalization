@@ -85,7 +85,8 @@ def train_stage1_model(
         learning_rate=0.01,
         momentum=0.9,
         weight_decay=5e-4,
-        scheduler_type='cosine'
+        scheduler_type='cosine',
+        use_amp=ExperimentConfig.USE_AMP
     )
     
     if verbose:
@@ -184,7 +185,8 @@ def train_stage2_model(
         learning_rate=0.01,
         momentum=0.9,
         weight_decay=5e-4,
-        scheduler_type='cosine'
+        scheduler_type='cosine',
+        use_amp=ExperimentConfig.USE_AMP
     )
     
     if verbose:
