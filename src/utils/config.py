@@ -22,9 +22,9 @@ class ExperimentConfig:
     DATA_AUGMENTATION = False
     
     # Training parameters
-    BATCH_SIZE = 128
+    BATCH_SIZE = 512
     LEARNING_RATE = 0.01
-    EPOCHS = 200
+    EPOCHS = 50
     OPTIMIZER = 'SGD'
     MOMENTUM = 0.9
     WEIGHT_DECAY = 5e-4

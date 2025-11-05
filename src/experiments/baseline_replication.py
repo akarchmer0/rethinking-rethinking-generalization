@@ -24,8 +24,8 @@ from models.training import Trainer
 
 def run_baseline_replication(
     architectures: list = ['resnet18', 'vgg11', 'mlp'],
-    seeds: list = [42, 123, 456],
-    epochs: int = 200,
+    seeds: list = [42],
+    epochs: int = 50,
     save_models: bool = True,
     verbose: bool = True
 ) -> Dict:
@@ -196,7 +196,7 @@ if __name__ == '__main__':
     results = run_baseline_replication(
         architectures=['resnet18'],  # Start with ResNet-18
         seeds=[42],  # Single seed for quick testing
-        epochs=200,
+        epochs=50,
         save_models=True,
         verbose=True
     )
