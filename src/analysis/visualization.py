@@ -307,3 +307,103 @@ def plot_comparison_grid(results: Dict[str, Dict[str, float]],
     
     plt.show()
 
+
+def plot_random_walk_comparison(results: Dict,
+                                save_path: Optional[str] = None,
+                                figsize: Tuple[int, int] = (15, 5)):
+    """
+    Compare random walk results to uniform random baseline.
+    
+    Creates a 3-subplot figure showing:
+    1. Test accuracy: walk continuation vs uniform random
+    2. Smoothness metrics comparison
+    3. Two-stage agreement: walk vs uniform
+    
+    Args:
+        results: Results dictionary from run_random_walk_experiment
+        save_path: Path to save figure
+        figsize: Figure size
+    """
+    fig, axes = plt.subplots(1, 3, figsize=figsize)
+    
+    # Subplot 1: Test Accuracy Comparison
+    ax1 = axes[0]
+    baseline = results['baseline']
+    test_accs = [
+        baseline['final_train_acc'],
+        baseline['test_acc_walk'],
+        baseline['test_acc_uniform']
+    ]
+    labels = ['Train', 'Test\n(Walk)', 'Test\n(Uniform)']
+    colors = ['#2ecc71', '#3498db', '#e74c3c']
+    
+    bars = ax1.bar(labels, test_accs, color=colors, alpha=0.7, edgecolor='black', linewidth=1.5)
+    ax1.set_ylabel('Accuracy (%)', fontsize=12)
+    ax1.set_title('Baseline Accuracy', fontsize=14, fontweight='bold')
+    ax1.set_ylim(0, 100)
+    ax1.grid(axis='y', alpha=0.3, linestyle='--')
+    
+    # Add value labels on bars
+    for bar in bars:
+        height = bar.get_height()
+        ax1.text(bar.get_x() + bar.get_width()/2., height,
+                f'{height:.1f}%',
+                ha='center', va='bottom', fontsize=10, fontweight='bold')
+    
+    # Subplot 2: Smoothness Metrics
+    ax2 = axes[1]
+    smoothness = results['smoothness']
+    
+    # Select key metrics
+    metrics_to_plot = ['gradient_norm', 'lipschitz_constant', 'local_variation']
+    metric_labels = ['Gradient\nNorm', 'Lipschitz\nConstant', 'Local\nVariation']
+    metric_values = [smoothness[m] for m in metrics_to_plot]
+    
+    bars = ax2.bar(metric_labels, metric_values, color='#9b59b6', alpha=0.7, 
+                   edgecolor='black', linewidth=1.5)
+    ax2.set_ylabel('Metric Value', fontsize=12)
+    ax2.set_title('Smoothness Metrics', fontsize=14, fontweight='bold')
+    ax2.grid(axis='y', alpha=0.3, linestyle='--')
+    
+    # Add value labels on bars
+    for bar in bars:
+        height = bar.get_height()
+        ax2.text(bar.get_x() + bar.get_width()/2., height,
+                f'{height:.3f}',
+                ha='center', va='bottom', fontsize=9, fontweight='bold')
+    
+    # Subplot 3: Two-Stage Agreement
+    ax3 = axes[2]
+    two_stage = results['two_stage']
+    
+    agreements = [
+        two_stage['variant_a_walk']['agreement'],
+        two_stage['variant_b_uniform']['agreement']
+    ]
+    labels = ['Walk\nData', 'Uniform\nData']
+    colors = ['#3498db', '#e74c3c']
+    
+    bars = ax3.bar(labels, agreements, color=colors, alpha=0.7, 
+                   edgecolor='black', linewidth=1.5)
+    ax3.set_ylabel('Agreement (%)', fontsize=12)
+    ax3.set_title('Two-Stage Agreement', fontsize=14, fontweight='bold')
+    ax3.set_ylim(0, 100)
+    ax3.grid(axis='y', alpha=0.3, linestyle='--')
+    
+    # Add value labels on bars
+    for bar in bars:
+        height = bar.get_height()
+        ax3.text(bar.get_x() + bar.get_width()/2., height,
+                f'{height:.1f}%',
+                ha='center', va='bottom', fontsize=10, fontweight='bold')
+    
+    plt.suptitle('Random Walk Experiment Results', 
+                fontsize=16, fontweight='bold', y=1.02)
+    plt.tight_layout()
+    
+    if save_path:
+        plt.savefig(save_path, bbox_inches='tight', dpi=300)
+        print(f"Saved figure to {save_path}")
+    
+    plt.show()
+

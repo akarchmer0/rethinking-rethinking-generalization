@@ -17,6 +17,7 @@ This repository contains a comprehensive experimental framework to challenge and
 3. **Two-Stage Learning** (Critical): Demonstrates that networks trained on random noise learn generalizable functions that other networks can efficiently learn
 4. **Frequency Analysis**: Analyzes learned functions in the frequency domain
 5. **Progressive Corruption**: Studies the relationship between label corruption and generalization
+6. **Random Walk Learning** (New): Tests learnability on data with drastically reduced Lipschitz continuity to validate the role of smoothness
 
 ## Repository Structure
 
@@ -33,8 +34,10 @@ rethinking-generalization-rebuttal/
 │   │   ├── baseline_replication.py
 │   │   ├── smoothness_analysis.py
 │   │   ├── two_stage_learning.py
+│   │   ├── two_stage_learning_toy.py
 │   │   ├── frequency_analysis.py
-│   │   └── complexity_measures.py
+│   │   ├── complexity_measures.py
+│   │   └── random_walk_learning.py
 │   ├── models/
 │   │   ├── architectures.py
 │   │   └── training.py
@@ -47,7 +50,8 @@ rethinking-generalization-rebuttal/
 │       └── config.py
 ├── notebooks/
 │   ├── exploratory_analysis.ipynb
-│   └── figure_generation.ipynb
+│   ├── figure_generation.ipynb
+│   └── random_walk_analysis.ipynb
 └── results/
     ├── raw_data/
     ├── processed/
@@ -119,6 +123,9 @@ python src/experiments/frequency_analysis.py
 
 # 5. Progressive corruption
 python src/experiments/complexity_measures.py
+
+# 6. Random walk learning (NEW!)
+python src/experiments/random_walk_learning.py
 ```
 
 ### Generate Figures
@@ -220,6 +227,35 @@ Studies the relationship between label corruption and generalization:
 **Run:**
 ```bash
 python src/experiments/complexity_measures.py
+```
+
+### Experiment 6: Random Walk Learning
+
+Trains networks on data with **drastically reduced Lipschitz continuity**:
+- Each image differs from the previous by exactly 1 pixel
+- Labels are randomized at each step
+- Creates a "random walk" through image space
+
+**Two-Stage Variants:**
+- **Variant A**: Network_2 trained on walk data labeled by Network_1
+- **Variant B**: Network_2 trained on uniform random data labeled by Network_1
+
+**Hypothesis**: Random walk data (lower Lipschitz continuity) should be significantly harder to learn/generalize compared to uniform random noise.
+
+**Key Findings**: 
+- Network can achieve high training accuracy on walk data
+- Test generalization remains poor (~10% on both walk continuation and uniform random)
+- Two-stage learning reveals differences in learnability between walk and uniform data
+- Validates that Lipschitz continuity matters for function learnability
+
+**Run:**
+```bash
+python src/experiments/random_walk_learning.py
+```
+
+**Analyze:**
+```bash
+jupyter notebook notebooks/random_walk_analysis.ipynb
 ```
 
 ## Key Results

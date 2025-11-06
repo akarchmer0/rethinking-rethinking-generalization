@@ -217,3 +217,74 @@ def create_smooth_random_dataset(base_model: torch.nn.Module, n_samples: int,
     return ModelLabeledDataset(base_model, n_samples, image_size, 
                               noise_type, device, seed)
 
+
+class RandomWalkDataset(Dataset):
+    """Dataset generated via random walk in pixel space.
+    
+    At each step, exactly one pixel is changed to a random value,
+    and the label is randomized. This creates data with much lower
+    Lipschitz continuity than uniform random noise.
+    """
+    
+    def __init__(self, n_samples: int, image_size: int = 32,
+                 n_classes: int = 10, seed: Optional[int] = None,
+                 continuation_from: Optional[Tuple[torch.Tensor, int]] = None):
+        """
+        Generate data via random walk in pixel space.
+        
+        Args:
+            n_samples: Number of steps in random walk
+            image_size: Size of square images (will be image_size x image_size x 3)
+            n_classes: Number of classes
+            seed: Random seed for reproducibility
+            continuation_from: (image, label) tuple to continue walk from
+        """
+        if seed is not None:
+            np.random.seed(seed)
+            torch.manual_seed(seed)
+        
+        self.n_samples = n_samples
+        self.image_size = image_size
+        self.n_classes = n_classes
+        
+        # Initialize storage
+        self.images = torch.zeros(n_samples, 3, image_size, image_size)
+        self.labels = torch.zeros(n_samples, dtype=torch.long)
+        
+        # Starting point
+        if continuation_from is not None:
+            current_image = continuation_from[0].clone()
+            current_label = continuation_from[1]
+        else:
+            # Start with random image and label
+            current_image = torch.rand(3, image_size, image_size)
+            current_label = np.random.randint(0, n_classes)
+        
+        # Generate random walk
+        for i in range(n_samples):
+            # Store current state
+            self.images[i] = current_image.clone()
+            self.labels[i] = current_label
+            
+            # Take one step: change exactly 1 pixel
+            channel = np.random.randint(0, 3)
+            row = np.random.randint(0, image_size)
+            col = np.random.randint(0, image_size)
+            current_image[channel, row, col] = np.random.rand()
+            
+            # Randomize label
+            current_label = np.random.randint(0, n_classes)
+        
+        # Store final state for potential continuation
+        self.final_state = (current_image.clone(), current_label)
+    
+    def __len__(self) -> int:
+        return self.n_samples
+    
+    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, int]:
+        return self.images[idx], self.labels[idx].item()
+    
+    def get_final_state(self) -> Tuple[torch.Tensor, int]:
+        """Get the final (image, label) state for continuation."""
+        return self.final_state
+

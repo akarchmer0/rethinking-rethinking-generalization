@@ -47,6 +47,7 @@ def run_all_experiments(quick_test=False):
     from src.experiments import two_stage_learning
     from src.experiments import frequency_analysis
     from src.experiments import complexity_measures
+    from src.experiments import random_walk_learning
     
     # Experiment 1: Baseline Replication
     print("\n" + "="*80)
@@ -126,6 +127,20 @@ def run_all_experiments(quick_test=False):
     #     verbose=True
     # )
     # complexity_measures.summarize_corruption_results(corruption_results)
+    
+    # Experiment 6: Random Walk Learning
+    print("\n" + "="*80)
+    print("EXPERIMENT 6: RANDOM WALK LEARNING")
+    print("="*80)
+    random_walk_results = random_walk_learning.run_random_walk_experiment(
+        architecture='resnet18',
+        n_samples=50000 if not quick_test else 10000,
+        test_samples_walk=10000 if not quick_test else 2000,
+        test_samples_uniform=10000 if not quick_test else 2000,
+        epochs=epochs,
+        seed=seeds[0],
+        verbose=True
+    )
     
     # Summary
     print("\n" + "="*80)

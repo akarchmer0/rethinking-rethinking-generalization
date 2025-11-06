@@ -24,7 +24,7 @@ class ExperimentConfig:
     # Training parameters
     BATCH_SIZE = 512
     LEARNING_RATE = 0.01
-    EPOCHS = 20
+    EPOCHS = 200
     OPTIMIZER = 'SGD'
     MOMENTUM = 0.9
     WEIGHT_DECAY = 5e-4
